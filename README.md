@@ -105,7 +105,7 @@ Follow these steps to configure your development environment and launch the appl
 - To monitor and manage Celery tasks via a web interface, run Celery Flower:
 
   ```bash
-  FLOWER_UNAUTHENTICATED_API=True celery -A core --broker=redis://localhost:6379/0 flower --port=5555
+  FFLOWER_UNAUTHENTICATED_API=True celery -A gpt_slides --broker=redis://localhost:6379/0 flower --port=5555
   ```
 
 ## Installation Steps (Docker)  
