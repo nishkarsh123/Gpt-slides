@@ -112,13 +112,47 @@ Follow these steps to configure your development environment and launch the appl
 
 Follow these steps to configure your development environment and launch the application.
 
-### 1. Creating a .env
- ```plaintext
+### 1. Set up the Python Virtual Environment
+
+- **Creation**:
+
+  ```bash
+  python -m venv env
+  ```
+
+- **Activation**:
+
+  ```bash
+  source env/bin/activate  # On Unix/macOS
+  env\Scripts\activate  # On Windows
+  ```
+
+### 2. Install Required Python Packages
+
+- Install all dependencies listed in the `requirements.txt` to ensure all required libraries are available.
+
+  ```bash
+  pip install -r requirements.txt
+  ```
+### 3. Initialize the Database
+
+- Apply migrations to set up your database schema:
+
+  ```bash
+  python manage.py migrate
+  ```
+  
+### 4. Creating a .env
+- Create a `.env` file in the root of your project directory and populate it with necessary configuration:
+ 
+   ```plaintext
   OPENAI_API_KEY=<Your OPEN API Key>
   CELERY_BROKER=redis://redis:6379/0
   ```
 
 ### 2. Run Docker Compose command
-```bash
+- Run docker compose cmd to spin all the containers required.
+  
+  ```bash
     docker compose up -d
   ```
