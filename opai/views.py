@@ -9,7 +9,6 @@ from .models import PPT
 import uuid  # Import UUID module
 from django.http import JsonResponse, FileResponse
 from django.db.models.signals import post_save, pre_delete
-from django.dispatch import receiver
 import logging
 
 MEDIA_ROOT=settings.MEDIA_ROOT
@@ -17,14 +16,18 @@ MEDIA_ROOT=settings.MEDIA_ROOT
 class uploadPPT(APIView):
     def post (self,request):
         form = PptxUploadForm(request.POST, request.FILES)
-        if(request.method == "POST" and form.is_valid()):
-            unique_filename = f"{uuid.uuid4()}.pptx"
-            unique_file_path = MEDIA_ROOT/ "ppt" /f"{unique_filename}"
-            new_ppt = PPT.objects.create(status="loading", ppt = str(unique_file_path),ppt_name = unique_filename)
-            with open(unique_file_path, "wb") as file:
-                for chunk in request.FILES["ppt"].chunks():
-                    file.write(chunk)
-            task = send_generation_request_to_GPT_task.delay(unique_filename,new_ppt.id)
+        if(request.method == "POST"):
+            # unique_filename = f"{uuid.uuid4()}.pptx"
+            # unique_file_path = MEDIA_ROOT/ "ppt" /f"{unique_filename}"
+            # new_ppt = PPT.objects.create(status="loading", ppt = str(unique_file_path),ppt_name = unique_filename)
+            # with open(unique_file_path, "wb") as file:
+            #     for chunk in request.FILES["ppt"].chunks():
+            #         file.write(chunk)
+            if not form.is_valid():
+                context = {'form':form,"error":form.errors}
+                return render(request, 'slides/slides.html', context)
+            form.save()
+            #task = send_generation_request_to_GPT_task.delay(unique_filename,new_ppt.id)
             return redirect('/')
         context = {'form':form,"error":form.errors}
         return render(request, 'slides/slides.html', context)
@@ -36,13 +39,15 @@ def slides (request):
 
 
 def ListPPT (request):
-    ppt_list = PPT.objects.all()
-    data = list(ppt_list.values('id', 'status', 'created_at', 'ppt_modified','ppt_name'))
+    ppt_list = PPT.objects.all().order_by('-id')
+    # data = list(ppt_list.values('id', 'status', 'created_at', 'ppt_modified','ppt'))
+    data = [
+        {"id":item.id, 
+        "status":item.status, 
+        "created_at":item.created_at.isoformat(), 
+        "ppt_modified":item.ppt_modified.url if item.ppt_modified else None,
+        "ppt":item.ppt.url} for item in ppt_list
+    ]
     return JsonResponse(data,safe=False)
 
 
-# @receiver(post_save, sender=PPT) 
-# def save_profile(sender, instance, **kwargs):
-#     unique_filename = f"{uuid.uuid4()}.pptx"
-#     unique_file_path = MEDIA_ROOT/ "ppt" /f"{unique_filename}"
-#     send_generation_request_to_GPT_task.delay(unique_filename,instance.id)

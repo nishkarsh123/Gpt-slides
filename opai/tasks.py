@@ -7,8 +7,10 @@ from pptx import Presentation
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from rest_framework.response import Response
 from django.conf import settings
+import logging
+import os
  
-
+logger = logging.getLogger('opai')
 MEDIA_ROOT=settings.MEDIA_ROOT
 
 def find_shape_by_text(shapes, text):
@@ -19,36 +21,48 @@ def find_shape_by_text(shapes, text):
         elif shape.shape_type == MSO_SHAPE_TYPE.GROUP:
             return find_shape_by_text(shape.shapes, text)
     return None
+
 @shared_task
-def send_generation_request_to_GPT_task(unique_filename, id):
-    unique_file_path = MEDIA_ROOT/ "ppt" /f"{unique_filename}"
-    # with open (unique_file_path, "rb") as file:
-    new_ppt = PPT.objects.filter(id=id).first()
+def send_generation_request_to_GPT_task(id):
     try:
+        # unique_file_path = MEDIA_ROOT / "ppt" / f"{unique_filename}"
+        # new_ppt = PPT.objects.filter(id=id).first()
+
+        instance = PPT.objects.get(id=id)
         result = send_generation_request_to_gpt()
         if result:
-            root = Presentation(unique_file_path)
-            slide = root.slides[0]  # considering only the first slide
+            root = Presentation(instance.ppt.path)
+            slide = root.slides[0]
             title = find_shape_by_text(slide.shapes, "THOUGHT/JOKE/QUOTE OF THE DAY")
             subTitle = find_shape_by_text(slide.shapes, "{DYNAMIC_FIELD FOR THOUGHT/JOKE/QUOTE}")
+
             if title:
                 title.text = result['title']
             else:
-                slide.shapes.title.text=result['title']
+                slide.shapes.title.text = result['title']
+
             if subTitle:
                 subTitle.text = result['joke']
             elif slide.placeholders[1]:
-                slide.placeholders[1].text=result['joke']
-            unique_file_path = MEDIA_ROOT/ "ppt_modified" /f"{unique_filename}"
+                slide.placeholders[1].text = result['joke']
+
+            new_file_path = f"ppt_modified/{os.path.basename(instance.ppt.name)}"
+            unique_file_path = MEDIA_ROOT / "ppt_modified" / f"{os.path.basename(instance.ppt.name)}"
             root.save(unique_file_path)
-            new_ppt.ppt_modified = str(unique_file_path)
-            new_ppt.status = "finished"
-            new_ppt.save()
+
+            instance.ppt_modified = new_file_path
+            instance.status = "finished"
+            instance.save()
+
+            return {"id": instance.id, "status": instance.status, "created_at": instance.created_at.isoformat()}
         else:
             raise Exception("Result is empty")
-        return {"id": new_ppt.id, "status": new_ppt.status, "created_at": new_ppt.created_at.isoformat()}
-    except Exception as e:
-        new_ppt.status = "failed"
-        new_ppt.save()
-        raise Exception(f"Error: {e}") from None
 
+    except ConnectionError as ce:
+        logger.error(f"Connection error: {ce}")
+        
+    except Exception as e:
+        logger.exception("An error occurred: %s", e)
+        instance.status = "failed"
+        instance.save()
+        raise Exception(f"Error: {e}") from None

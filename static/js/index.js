@@ -13,10 +13,10 @@ const intervalTime = 5000;
 
 function updateTable(data) {
     list.innerHTML = '';
-    data.forEach(item => {
+    data.forEach((item,index) => {
         const row = document.createElement('tr');
         const id = document.createElement('td');
-        id.textContent = item.id;
+        id.textContent = index+1;
         row.appendChild(id);
         const status = document.createElement('td');
         status.textContent = item.status;
@@ -31,7 +31,7 @@ function updateTable(data) {
             viewButton.style.backgroundColor = 'grey';
         }
         //console.log(item.ppt_modified,item.ppt_modified.split('/'),`media/ppt_modified/${item.ppt_modified.split('/')[item.ppt_modified.split('/').length-1]}`)
-        viewButton.href = item.ppt_name ? `media/ppt_modified/${item.ppt_name}` : "/";
+        viewButton.href = item.ppt_modified;
         viewButton.textContent = 'View';
         viewButton.classList.add('btn', 'btn-primary');
         url.appendChild(viewButton);

@@ -1,23 +1,35 @@
-FROM python:3.12.3 as python
-ARG OPENAI_API_KEY
-ARG CELERY_BROKER
-ENV OPENAI_API_KEY $OPENAI_API_KEY
-ENV CELERY_BROKER: ${CELERY_BROKER}
-RUN mkdir /gpt_slides
-WORKDIR /gpt_slides
-COPY requirements.txt /gpt_slides
-RUN pip install -r requirements.txt
-COPY . gpt_slides/
+# define an alias for the specific python version used in this file.
+FROM python:3.12.3-slim-bookworm as python
+
+# Python build stage
+FROM python as python-build-stage
 
 
-# EXPOSE 8000
+# Requirements are installed here to ensure they will be cached.
+COPY ./requirements.txt .
 
-# CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Create Python Dependency and Sub-Dependency Wheels.
+RUN pip wheel --wheel-dir /usr/src/app/wheels  \
+   -r requirements.txt
 
 
-# FROM nginx:latest
-# WORKDIR /usr/share/nginx/html
-# RUN rm -rf ./*
-# COPY nginx.conf /etc/nginx/conf.d/
-# RUN python manage.py migrate
-# RUN python manage.py collectstatic --noinput
+# Python 'run' stage
+FROM python as python-run-stage
+
+ARG BUILD_ENVIRONMENT=production
+ARG APP_HOME=/app
+
+ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV BUILD_ENV ${BUILD_ENVIRONMENT}
+
+WORKDIR ${APP_HOME}
+
+# All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
+# copy python dependency wheels from python-build-stage
+COPY --from=python-build-stage /usr/src/app/wheels /wheels/
+
+RUN pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/*  && \
+    rm -rf /wheels/ 
+
+COPY . .

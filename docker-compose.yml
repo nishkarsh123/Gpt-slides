@@ -1,13 +1,15 @@
 version: '3'
 
 services:
-  web:
+  web: &web
     build: .
-    environment:
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      CELERY_BROKER: ${CELERY_BROKER}
+    image: gpt_slides
     volumes:
-      - .:/gpt_slides
+      - ./media:/app/media
+      - ./db.sqlite3:/app/db.sqlite3
+      # - .:/app
+    env_file:
+      - .env
     command: >
       sh -c "
         python manage.py migrate &&
@@ -17,27 +19,40 @@ services:
       - "8000:8000"
     depends_on:
       - redis
-    restart: always
-  
-  celary:
-    build: .  
-    volumes:
-      - .:/gpt_slides
+    networks:
+      - app-network
+
+  celary: 
+    <<: *web
+    image: gpt_slides-celary
     command: >
       sh -c "
-        celery --app=gpt_slides worker --loglevel=info
-      "
+        celery --app=gpt_slides worker --loglevel=info"
+    ports: []
+
+  flower: 
+    <<: *web
+    image: gpt_slides-flower
+    command: >
+      sh -c "
+        FLOWER_UNAUTHENTICATED_API=True celery -A gpt_slides --broker=redis://redis:6379/0 flower --port=5555 "
     depends_on:
-      - web
       - redis
-    restart: always
+      - celary
+    ports:
+      - "5555:5555"
   redis:
     image: redis:7.2-alpine
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
-    restart: always
+    networks:
+      - app-network
 
 volumes:
   redis-data:
+
+networks:
+  app-network:
+    driver: bridge

@@ -139,3 +139,35 @@ CELERY_BROKER_CONNECTION_RETRY = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 OPEN_AI_KEY = os.environ.get("OPENAI_API_KEY")
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'gpt_slides': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+        'opai':{
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        }
+    },
+}
