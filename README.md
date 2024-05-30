@@ -32,7 +32,7 @@ Before proceeding with the setup, ensure the following components are installed 
   python --version
   ```
 
-## Installation Steps
+## Installation Steps (Local)
 
 Follow these steps to configure your development environment and launch the application.
 
@@ -64,7 +64,7 @@ Follow these steps to configure your development environment and launch the appl
 - Create a `.env` file in the root of your project directory and populate it with necessary configuration:
 
   ```plaintext
-  OPENAI_API_KEY=<Your Stability API Key>
+  OPENAI_API_KEY=<Your OPEN API Key>
   CELERY_BROKER=redis://localhost:6379/0
   ```
 
@@ -106,4 +106,19 @@ Follow these steps to configure your development environment and launch the appl
 
   ```bash
   FLOWER_UNAUTHENTICATED_API=True celery -A core --broker=redis://localhost:6379/0 flower --port=5555
+  ```
+
+## Installation Steps (Docker)  
+
+Follow these steps to configure your development environment and launch the application.
+
+### 1. Creating a .env
+ ```plaintext
+  OPENAI_API_KEY=<Your OPEN API Key>
+  CELERY_BROKER=redis://redis:6379/0
+  ```
+
+### 2. Run Docker Compose command
+```bash
+    docker compose up -d
   ```
