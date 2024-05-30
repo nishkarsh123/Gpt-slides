@@ -150,7 +150,7 @@ Follow these steps to configure your development environment and launch the appl
   CELERY_BROKER=redis://redis:6379/0
   ```
 
-### 2. Run Docker Compose command
+### 5. Run Docker Compose command
 - Run docker compose cmd to spin all the containers required.
   
   ```bash
