@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      CELERY_BROKER: ${CELERY_BROKER}
+    volumes:
+      - .:/gpt_slides
+    command: >
+      sh -c "
+        python manage.py migrate &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+    restart: always
+  
+  celary:
+    build: .  
+    volumes:
+      - .:/gpt_slides
+    command: >
+      sh -c "
+        celery --app=gpt_slides worker --loglevel=info
+      "
+    depends_on:
+      - web
+      - redis
+    restart: always
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: always
+
+volumes:
+  redis-data:

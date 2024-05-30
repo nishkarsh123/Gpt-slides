@@ -1,0 +1,41 @@
+{% include "header/header.html" %}
+<div class="d-flex justify-content-center align-items-center">
+<div class="container-fluid bg-dark" style=" margin:20px; padding: 20px;
+max-width: 1000px; color: white; border-radius: 5px;">
+    <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+        <form method="POST" enctype="multipart/form-data" action="{% url 'opai:uploadPPT' %}">
+            {% csrf_token %}
+        <div class="mb-3">
+            <label for="formFile" class="form-label">Upload PPT File</label>
+            <div class="d-flex gap-3">
+              {{form.ppt}}
+            <button type="submit" class="btn btn-primary">Submit</button>
+            </div> 
+          </div>
+          {% if form.ppt.errors %}
+                <ul class="text-danger">
+                    {% for error in form.ppt.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}  
+          </form>
+           
+    </div>
+    <table class="table table-bordered" style="color: white;">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Status</th>
+            <th scope="col">CreatedAt</th>
+            <th scope="col">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+</div>
+</div>
+    </Body>
+
+</html>
