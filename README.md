@@ -134,7 +134,16 @@ Follow these steps to configure your development environment and launch the appl
   ```bash
   pip install -r requirements.txt
   ```
-### 3. Initialize the Database
+  
+### 3. Creating a .env
+- Create a `.env` file in the root of your project directory and populate it with necessary configuration:
+ 
+   ```plaintext
+  OPENAI_API_KEY=<Your OPEN API Key>
+  CELERY_BROKER=redis://redis:6379/0
+  ```
+   
+### 4. Initialize the Database
 
 - Apply migrations to set up your database schema:
 
@@ -142,14 +151,6 @@ Follow these steps to configure your development environment and launch the appl
   python manage.py migrate
   ```
   
-### 4. Creating a .env
-- Create a `.env` file in the root of your project directory and populate it with necessary configuration:
- 
-   ```plaintext
-  OPENAI_API_KEY=<Your OPEN API Key>
-  CELERY_BROKER=redis://redis:6379/0
-  ```
-
 ### 5. Run Docker Compose command
 - Run docker compose cmd to spin all the containers required.
   
